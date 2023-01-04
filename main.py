@@ -24,12 +24,23 @@ def find_latency(hostname):
     # print(p[0])
     # Finding the latency
     if "100% packet loss" in p[0].strip():
-        average = "[!] Unable to check " + hostname + " latency, potentially host block ICMP request."
+        # average = "[!] Unable to check " + hostname + " latency, potentially host block ICMP request."
+        pass
+        # average  = 99999
     else:
         average = p[0].strip().splitlines()[-1].split('=')[1].split('/')[1]
     # print(hostname,average)
-    mirrors[hostname] = str(average)
+        mirrors[hostname] = float(average)
 
 # Measuring each host latency
 for i in hosts:
     find_latency(i)
+# print(mirrors)
+
+# Sorting the host by latency
+sorted_dictionary = dict(sorted(mirrors.items(), key=lambda item: item[1]))
+print(sorted_dictionary)
+
+# Selecting Best mirror with lowest latency
+first_element = next(iter(sorted_dictionary))
+print(first_element)
