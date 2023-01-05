@@ -5,9 +5,14 @@ import subprocess
 import threading
 
 start = time.perf_counter()
+
 # Getting mirrors list 
-r = requests.get('https://http.kali.org/README.mirrorlist').text
-urls = re.findall(r'(?:href="http(?:s|))(.*)(?:/README")',r)[2:]
+r = requests.get('https://http.kali.org/README.mirrorlist')
+
+if r.status_code!=200:
+    exit()
+
+urls = re.findall(r'(?:href="http(?:s|))(.*)(?:/README")',r.text)[2:]
 # print(urls)
 
 hosts = []
@@ -21,7 +26,7 @@ print(hosts)
 
 # Function for measure latency of host
 def find_latency(hostname):
-    # Ping the site 
+    # Ping the host
     p = subprocess.Popen(['ping','-c 3', hostname], stderr=subprocess.PIPE, stdout=subprocess.PIPE).communicate()
     p = [str(x.decode('utf-8')) for x in p]
     # print(p[0])
@@ -54,7 +59,7 @@ sorted_dictionary = dict(sorted(mirrors.items(), key=lambda item: item[1]))
 
 # Selecting Best mirror with lowest latency
 first_element = next(iter(sorted_dictionary))
-print(first_element)
-end = time.perf_counter()
+# print(first_element)
 
+end = time.perf_counter()
 print(f"final time = {end-start}")
