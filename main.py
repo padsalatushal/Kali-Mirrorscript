@@ -1,7 +1,10 @@
 import requests
+import time
 import re
 import subprocess
+import threading
 
+start = time.perf_counter()
 # Getting mirrors list 
 r = requests.get('https://http.kali.org/README.mirrorlist').text
 urls = re.findall(r'(?:href="http(?:s|))(.*)(?:/README")',r)[2:]
@@ -29,18 +32,29 @@ def find_latency(hostname):
         # average  = 99999
     else:
         average = p[0].strip().splitlines()[-1].split('=')[1].split('/')[1]
-    # print(hostname,average)
+        print(hostname,average)
         mirrors[hostname] = float(average)
 
+threads = []
 # Measuring each host latency
-for i in hosts:
-    find_latency(i)
-# print(mirrors)
+# Create Thread for each host
+for host in hosts:
+    t = threading.Thread(target=find_latency,args=(host,))
+    threads.append(t)
+    t.start()
+
+# wait for all threads to complete
+for t in threads:
+    t.join()
+
 
 # Sorting the host by latency
 sorted_dictionary = dict(sorted(mirrors.items(), key=lambda item: item[1]))
-print(sorted_dictionary)
+# print(sorted_dictionary)
 
 # Selecting Best mirror with lowest latency
 first_element = next(iter(sorted_dictionary))
 print(first_element)
+end = time.perf_counter()
+
+print(f"final time = {end-start}")
