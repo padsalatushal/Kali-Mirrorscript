@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+# Mirrorscript By Padsala Tushal
 import requests
 import re
 import subprocess
