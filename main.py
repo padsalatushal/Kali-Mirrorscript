@@ -5,27 +5,36 @@ import threading
 from shutil import copyfile
 import os,sys
 
-# Getting mirrors list 
-r = requests.get('https://http.kali.org/README.mirrorlist')
-
-if r.status_code!=200:
-    print("[!] Failed to establish a connection to host")
-    exit()
-
-urls = re.findall(r'(?:href="http(?:s|))(.*)(?:/README")',r.text)[2:]
-# print(urls)
+# Check if user is root first.
+if os.getuid() != 0:
+	sys.exit("[!] Must run as root/sudo\n")
 
 hosts = []
 mirrors = {}
-# Getting Hostname of each of the url
-for url in urls:
-    hostname = url.split("//")[-1].split("/")[0].split('?')[0]
-    # print(hostname)
-    hosts.append(hostname)
-# print(hosts)
+threads = []
 
+# Function for getting hosts
+def get_hosts():
+    print("[+] Getting mirror list ...")
+    # Getting mirrors list 
+    r = requests.get('https://http.kali.org/README.mirrorlist')
+
+    if r.status_code!=200:
+        sys.exit("[!] Failed to establish a connection to host\n")
+
+    urls = re.findall(r'(?:href="http(?:s|))(.*)(?:/README")',r.text)[2:]
+    # print(urls)
+
+    # Getting Hostname of each of the url
+    for url in urls:
+        hostname = url.split("//")[-1].split("/")[0].split('?')[0]
+        # print(hostname)
+        hosts.append(hostname)
+    # print(hosts)
+get_hosts()
 # Function for measure latency of host
 def find_latency(hostname):
+
     # Ping the host
     p = subprocess.Popen(['ping','-c 3', hostname], stderr=subprocess.PIPE, stdout=subprocess.PIPE).communicate()
     p = [str(x.decode('utf-8')) for x in p]
@@ -37,10 +46,10 @@ def find_latency(hostname):
         # average  = 99999
     else:
         average = p[0].strip().splitlines()[-1].split('=')[1].split('/')[1]
-        print(hostname,average)
+        # print(hostname,average)
         mirrors[hostname] = float(average)
 
-threads = []
+print("[+] Finding the best latency ...")
 # Measuring each host latency
 # Create Thread for each host
 for host in hosts:
@@ -52,18 +61,20 @@ for host in hosts:
 for t in threads:
     t.join()
 
-
 # Sorting the host by latency
 sorted_dictionary = dict(sorted(mirrors.items(), key=lambda item: item[1]))
 # print(sorted_dictionary)
 
 # Selecting Best mirror with lowest latency
 first_element = next(iter(sorted_dictionary))
-print(first_element)
+# print(first_element)
+print(f"[+] Fastest Mirror : {first_element}")
 
+print("[+] Making Backup of source.list file ...")
 # Making Backup
 copyfile('/etc/apt/sources.list', '/etc/apt/sources.list.bk')
 
+print("[+] Updating sources.list with new entry ...")
 # Commenting older entries 
 with open('/etc/apt/sources.list','r') as f:
     lines = f.readlines()
@@ -77,9 +88,4 @@ with open('/etc/apt/sources.list','w') as f:
     f.write(f"deb http://{first_element}/kali kali-rolling main contrib non-free \n")
     f.write(f"#deb-src http://{first_element}/kali kali-rolling main contrib non-free \n")
 
-if __name__ == "__main__":
-    
-    # Check if user is root first.
-	if os.getuid() != 0:
-		sys.exit("[!] Must run as root/sudo\n")
-    
+print("[+] Done")
