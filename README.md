@@ -17,3 +17,7 @@ sudo python3 mirrorscript.py
 
 ## Demo
 ![image](https://user-images.githubusercontent.com/57517785/211211276-a5c7364b-6c3a-4a0d-84f1-e08676d56915.png)
+
+
+## Resource
+https://http.kali.org/README.mirrorlist
