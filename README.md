@@ -16,7 +16,7 @@ sudo python3 mirrorscript.py
 ```
 
 ## Demo
-![image](https://user-images.githubusercontent.com/57517785/211211276-a5c7364b-6c3a-4a0d-84f1-e08676d56915.png)
+![image](https://user-images.githubusercontent.com/57517785/211934812-5dbeefc7-a5aa-4ef7-8e7c-f3bd55ffc22b.png)
 
 
 ## Resource
