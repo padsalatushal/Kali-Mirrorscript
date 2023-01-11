@@ -11,13 +11,27 @@ import os,sys
 if os.getuid() != 0:
 	sys.exit("[!] Must run as root/sudo\n")
 
+banner_text = '''
+  __  __ _                        _____           _       _   
+ |  \/  (_)                      / ____|         (_)     | |  
+ | \  / |_ _ __ _ __ ___  _ __  | (___   ___ _ __ _ _ __ | |_ 
+ | |\/| | | '__| '__/ _ \| '__|  \___ \ / __| '__| | '_ \| __|
+ | |  | | | |  | | | (_) | |     ____) | (__| |  | | |_) | |_ 
+ |_|  |_|_|_|  |_|  \___/|_|    |_____/ \___|_|  |_| .__/ \__|
+                                                   | |        
+                                                   |_|        
+                                            by padsala tushal
+'''
+print(banner_text)
+INFO = '\033[38;5;50m'+'Info'+'\033[0m'
+
 hosts = []
 mirrors = {}
 threads = []
 
 # Function for getting hosts
 def get_hosts():
-    print("[+] Getting mirror list ...")
+    print(f"[{INFO}] Getting mirror list ...")
     # Getting mirrors list 
     r = requests.get('https://http.kali.org/README.mirrorlist')
 
@@ -51,7 +65,7 @@ def find_latency(hostname):
         # print(hostname,average)
         mirrors[hostname] = float(average)
 
-print("[+] Finding the best latency ...")
+print(f"[{INFO}] Finding the best latency ...")
 # Measuring each host latency
 # Create Thread for each host
 for host in hosts:
@@ -70,13 +84,13 @@ sorted_dictionary = dict(sorted(mirrors.items(), key=lambda item: item[1]))
 # Selecting Best mirror with lowest latency
 first_element = next(iter(sorted_dictionary))
 # print(first_element)
-print(f"[+] Fastest Mirror : {first_element}")
+print(f"[{INFO}] Fastest Mirror : {first_element}")
 
-print("[+] Making Backup of source.list file ...")
+print(f"[{INFO}] Making Backup of source.list file ...")
 # Making Backup
 copyfile('/etc/apt/sources.list', '/etc/apt/sources.list.bk')
 
-print("[+] Updating sources.list with new entry ...")
+print(f"[{INFO}] Updating sources.list with new entry ...")
 # Commenting older entries 
 with open('/etc/apt/sources.list','r') as f:
     lines = f.readlines()
@@ -90,4 +104,4 @@ with open('/etc/apt/sources.list','w') as f:
     f.write(f"deb http://{first_element}/kali kali-rolling main contrib non-free \n")
     f.write(f"#deb-src http://{first_element}/kali kali-rolling main contrib non-free \n")
 
-print("[+] Done")
+print("["+'\033[38;5;50m'+'Done'+'\033[0m'+"]")
