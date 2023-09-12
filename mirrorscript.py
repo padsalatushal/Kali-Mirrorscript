@@ -6,6 +6,8 @@ import subprocess
 import threading
 from shutil import copyfile
 import os,sys
+import socket
+import time
 
 # Check if user is root first.
 if os.getuid() != 0:
@@ -48,22 +50,38 @@ def get_hosts():
         hosts.append(hostname)
     # print(hosts)
 get_hosts()
+
+
 # Function for measure latency of host
 def find_latency(hostname):
+    host_domain = hostname  # Replace with the domain you want to measure
+    try:
+        start_time = time.time()
+    # Create a socket and try to connect to the host's port 80 (HTTP)
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(5)  # Set a timeout for the connection attempt
+            s.connect((host_domain, 80))
+            end_time = time.time()
+            latency = (end_time - start_time) * 1000  # Convert to milliseconds
+            mirrors[host_domain] = float(latency)
+        # print(f"Latency to {host_domain}: {latency:.2f} ms")
+    except socket.error as e:
+        print(f"Error: {e}")
 
-    # Ping the host
-    p = subprocess.Popen(['ping','-c 3', hostname], stderr=subprocess.PIPE, stdout=subprocess.PIPE).communicate()
-    p = [str(x.decode('utf-8')) for x in p]
-    # print(p[0])
-    # Finding the latency
-    if "100% packet loss" in p[0].strip():
-        # average = "[!] Unable to check " + hostname + " latency, potentially host block ICMP request."
-        pass
-        # average  = 99999
-    else:
-        average = p[0].strip().splitlines()[-1].split('=')[1].split('/')[1]
-        # print(hostname,average)
-        mirrors[hostname] = float(average)
+
+    # # Ping the host
+    # p = subprocess.Popen(['ping','-c 3', hostname], stderr=subprocess.PIPE, stdout=subprocess.PIPE).communicate()
+    # p = [str(x.decode('utf-8')) for x in p]
+    # print(f"{p[0]} =")
+    # # Finding the latency
+    # if "100% packet loss" in p[0].strip():
+    #     # average = "[!] Unable to check " + hostname + " latency, potentially host block ICMP request."
+    #     pass
+    #     # average  = 99999
+    # else:
+    #     average = p[0].strip().splitlines()[-1].split('=')[1].split('/')[1]
+    #     print(hostname,average)
+    #     mirrors[hostname] = float(average)
 
 print(f"[{INFO}] Finding the best latency ...")
 # Measuring each host latency
